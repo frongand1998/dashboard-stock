@@ -164,18 +164,23 @@ which is more reliable for SSE (`/api/stream`) and long-running Node processes.
 1. Push this repository to GitHub.
 2. In Render, create a new **Web Service** from the repo.
 3. Set service configuration:
-  - Root Directory: `backend`
-  - Build Command: `npm install && npm run build`
-  - Start Command: `npm run start`
+
+- Root Directory: `backend`
+- Build Command: `npm install && npm run build`
+- Start Command: `npm run start`
+
 4. Add environment variables:
-  - `DATA_PROVIDER=free-tier`
-  - `TWELVE_DATA_API_KEY` (optional)
-  - `ALPHA_VANTAGE_API_KEY` (optional)
-  - `BINANCE_REST_URL=https://api.binance.com`
-  - `COINGECKO_API_URL=https://api.coingecko.com/api/v3`
-  - `CRYPTOPANIC_API_KEY` (optional)
+
+- `DATA_PROVIDER=free-tier`
+- `TWELVE_DATA_API_KEY` (optional)
+- `ALPHA_VANTAGE_API_KEY` (optional)
+- `BINANCE_REST_URL=https://api.binance.com`
+- `COINGECKO_API_URL=https://api.coingecko.com/api/v3`
+- `CRYPTOPANIC_API_KEY` (optional)
+
 5. Deploy and copy backend URL, for example:
-  - `https://your-backend.onrender.com`
+
+- `https://your-backend.onrender.com`
 
 Health check example:
 
@@ -188,7 +193,9 @@ https://your-backend.onrender.com/api/health
 1. Create a Vercel project from the same repo.
 2. Set **Root Directory** to `frontend`.
 3. Add environment variable:
-  - `VITE_API_BASE=https://your-backend.onrender.com/api`
+
+- `VITE_API_BASE=https://your-backend.onrender.com/api`
+
 4. Deploy frontend.
 
 ### 3) Verify integration
