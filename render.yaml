@@ -13,8 +13,8 @@ services:
       - key: COINGECKO_API_URL
         value: https://api.coingecko.com/api/v3
       - key: TWELVE_DATA_API_KEY
-        sync: false
+        value: ""
       - key: ALPHA_VANTAGE_API_KEY
-        sync: false
+        value: ""
       - key: CRYPTOPANIC_API_KEY
-        sync: false
+        value: ""
