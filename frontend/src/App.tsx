@@ -46,6 +46,12 @@ function formatAgo(
   return t("common.hoursAgo", { value: hr });
 }
 
+function formatNullableNumber(value: unknown): string {
+  return typeof value === "number" && Number.isFinite(value)
+    ? value.toLocaleString()
+    : "-";
+}
+
 export default function App() {
   const { locale, setLocale, t } = useI18n();
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
@@ -351,8 +357,8 @@ export default function App() {
               </p>
               <p className="text-xl font-bold text-ink">
                 {liveQuote
-                  ? liveQuote.price.toLocaleString()
-                  : (analysis?.quote.price.toLocaleString() ?? "-")}
+                  ? formatNullableNumber(liveQuote.price)
+                  : formatNullableNumber(analysis?.quote.price)}
               </p>
             </div>
             <select

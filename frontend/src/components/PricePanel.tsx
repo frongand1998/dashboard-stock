@@ -39,7 +39,11 @@ const signalConfig: Record<
 export function PricePanel({ analysis }: Props) {
   const { t } = useI18n();
   const q = analysis.quote;
-  const positive = q.changePercent24h >= 0;
+  const priceValue = asFiniteNumber(q.price);
+  const changePercentValue = asFiniteNumber(q.changePercent24h);
+  const volumeValue = asFiniteNumber(q.volume24h);
+  const volatilityValue = asFiniteNumber(q.volatility);
+  const positive = (changePercentValue ?? 0) >= 0;
   const sig =
     signalConfig[analysis.decision.tradeSignal] ?? signalConfig["WAIT"];
 
@@ -54,7 +58,7 @@ export function PricePanel({ analysis }: Props) {
 
       <div className="mt-2 flex items-end gap-4">
         <p className="text-3xl font-bold text-ink">
-          {q.price.toLocaleString()}
+          {formatNumber(priceValue)}
         </p>
         <span
           className={`mb-0.5 rounded-xl px-4 py-1.5 text-sm font-extrabold tracking-wide ${sig.bg} ${sig.text} ${sig.glow}`}
@@ -66,13 +70,17 @@ export function PricePanel({ analysis }: Props) {
       <p
         className={`text-sm font-semibold ${positive ? "text-positive" : "text-negative"}`}
       >
-        {positive ? "+" : ""}
-        {q.changePercent24h}%
+        {changePercentValue == null
+          ? "-"
+          : `${positive ? "+" : ""}${changePercentValue}%`}
       </p>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
-        <Info label={t("price.volume")} value={q.volume24h.toLocaleString()} />
-        <Info label={t("price.volatility")} value={q.volatility.toFixed(4)} />
+        <Info label={t("price.volume")} value={formatNumber(volumeValue)} />
+        <Info
+          label={t("price.volatility")}
+          value={formatFixed(volatilityValue, 4)}
+        />
         <Info label={t("price.market")} value={q.marketStatus} />
         <Info
           label={t("price.data")}
@@ -87,6 +95,18 @@ export function PricePanel({ analysis }: Props) {
       </div>
     </section>
   );
+}
+
+function asFiniteNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function formatNumber(value: number | null): string {
+  return value == null ? "-" : value.toLocaleString();
+}
+
+function formatFixed(value: number | null, digits: number): string {
+  return value == null ? "-" : value.toFixed(digits);
 }
 
 function Info({ label, value }: { label: string; value: string }) {
