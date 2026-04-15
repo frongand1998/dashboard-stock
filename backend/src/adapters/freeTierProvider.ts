@@ -48,6 +48,16 @@ async function safeRequest<T>(fn: () => Promise<T>): Promise<T | null> {
   }
 }
 
+function isFiniteQuote(quote: Quote | null): quote is Quote {
+  if (!quote) return false;
+  return (
+    Number.isFinite(quote.price) &&
+    Number.isFinite(quote.changePercent24h) &&
+    Number.isFinite(quote.volume24h) &&
+    Number.isFinite(quote.volatility)
+  );
+}
+
 function inferSentimentFromHeadline(title: string): number {
   const lowered = title.toLowerCase();
   const positiveWords = [
@@ -246,7 +256,9 @@ async function fetchYahooDailyQuote(symbol: string): Promise<Quote | null> {
       throw new Error("Invalid Yahoo daily quote response");
     }
 
-    const price = Number(meta.regularMarketPrice ?? closeSeries[closeSeries.length - 1]);
+    const price = Number(
+      meta.regularMarketPrice ?? closeSeries[closeSeries.length - 1],
+    );
     const previousClose = Number(closeSeries[closeSeries.length - 2]);
     const dailyPercent =
       previousClose === 0 ? 0 : ((price - previousClose) / previousClose) * 100;
@@ -319,13 +331,20 @@ export class FreeTierProvider implements DataProvider {
         timeout: 7000,
       });
 
+      const price = Number(data?.close);
+      const changePercent24h = Number(data?.percent_change);
+      const volume24h = Number(data?.volume ?? 0);
+      if (!Number.isFinite(price) || !Number.isFinite(changePercent24h)) {
+        throw new Error("TwelveData quote missing numeric values");
+      }
+
       return {
         symbol,
         assetClass,
-        price: Number(data.close),
-        changePercent24h: Number(data.percent_change),
-        volume24h: Number(data.volume ?? 0),
-        volatility: Math.abs(Number(data.percent_change ?? 0)) / 100,
+        price,
+        changePercent24h,
+        volume24h,
+        volatility: Math.abs(changePercent24h) / 100,
         marketStatus: "open" as const,
         delayMinutes: 15,
         source: "twelve-data",
@@ -333,11 +352,12 @@ export class FreeTierProvider implements DataProvider {
       };
     });
 
-    if (quote) return quote;
-  const yahooQuote = await fetchYahooDailyQuote(symbol);
-    if (yahooQuote) return yahooQuote;
+    if (isFiniteQuote(quote)) return quote;
+    const yahooQuote = await fetchYahooDailyQuote(symbol);
+    if (isFiniteQuote(yahooQuote)) return yahooQuote;
     const yahooChart = await fetchYahooChart(symbol, "1d");
-    if (yahooChart) return yahooChart.quote;
+    const yahooChartQuote = yahooChart?.quote ?? null;
+    if (isFiniteQuote(yahooChartQuote)) return yahooChartQuote;
     const fallback = await mock.getQuote(symbol, assetClass);
     return { ...fallback, delayMinutes: 15, source: "mock-delayed" };
   }
