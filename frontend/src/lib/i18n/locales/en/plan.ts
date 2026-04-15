@@ -1,0 +1,33 @@
+export const enPlan = {
+  title: "Auto Investment Plan",
+  customPlaceholder: "Custom theme, e.g. semiconductor cycle risk",
+  customButton: "Custom Plan",
+  building: "Building plan...",
+  comparing: "Comparing plans...",
+  copySummary: "Copy Summary",
+  copy: "Copy",
+  allocation: "Allocation",
+  execution: "Execution",
+  riskRules: "Risk Rules",
+  compare: "Compare Plans",
+  nvdaVsLrcx: "NVDA vs LRCX",
+  currentVsNvda: "Current vs NVDA",
+  savedHistory: "Saved Plan History",
+  noSaved: "No saved plans yet.",
+  unableLoad: "Unable to load plan",
+  unableCustom: "Unable to load custom plan",
+  unableCompare: "Unable to compare plans",
+  unableCompareNvda: "Unable to compare current vs NVDA",
+  unableCopy: "Unable to copy plan summary",
+  copied: "Copied {symbol} plan summary.",
+  confidence: "Confidence",
+  review: "Review",
+};
+
+export const enPreset = {
+  now: "Plan Now",
+  lrcx: "LRCX Plan",
+  nvda: "NVDA Plan",
+  war: "War Plan",
+  ai: "AI Plan",
+};

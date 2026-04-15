@@ -1,0 +1,33 @@
+export const idPlan = {
+  title: "Rencana Investasi Otomatis",
+  customPlaceholder: "Tema kustom, contoh: risiko siklus semikonduktor",
+  customButton: "Rencana Kustom",
+  building: "Menyusun rencana...",
+  comparing: "Membandingkan rencana...",
+  copySummary: "Salin Ringkasan",
+  copy: "Salin",
+  allocation: "Alokasi",
+  execution: "Eksekusi",
+  riskRules: "Aturan Risiko",
+  compare: "Bandingkan Rencana",
+  nvdaVsLrcx: "NVDA vs LRCX",
+  currentVsNvda: "Saat Ini vs NVDA",
+  savedHistory: "Riwayat Rencana Tersimpan",
+  noSaved: "Belum ada rencana tersimpan.",
+  unableLoad: "Gagal memuat rencana",
+  unableCustom: "Gagal memuat rencana kustom",
+  unableCompare: "Gagal membandingkan rencana",
+  unableCompareNvda: "Gagal membandingkan saat ini vs NVDA",
+  unableCopy: "Gagal menyalin ringkasan rencana",
+  copied: "Ringkasan rencana {symbol} berhasil disalin.",
+  confidence: "Keyakinan",
+  review: "Tinjau",
+};
+
+export const idPreset = {
+  now: "Rencana Sekarang",
+  lrcx: "Rencana LRCX",
+  nvda: "Rencana NVDA",
+  war: "Rencana Perang",
+  ai: "Rencana AI",
+};

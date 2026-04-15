@@ -1,0 +1,22 @@
+export const thApp = {
+  title: "แดชบอร์ดวิเคราะห์การลงทุน",
+  subtitle:
+    "สัญญาณที่อธิบายได้สำหรับหุ้นและคริปโต โดยใช้คะแนนเทคนิค ข่าว และความเสี่ยง",
+  language: "ภาษา",
+  loadingAnalysis: "กำลังโหลดการวิเคราะห์...",
+  livePrice: "ราคาเรียลไทม์",
+  strategyUpdated: "อัปเดตกลยุทธ์ {ago}",
+  waitingStrategy: "รอการอัปเดตกลยุทธ์แบบเรียลไทม์",
+  newsShockUp: "แรงกระแทกข่าวขาขึ้น {delta}",
+  newsShockDown: "แรงกระแทกข่าวขาลง {delta}",
+  alertRules: "กฎการแจ้งเตือน",
+  triggeredAlerts: "การแจ้งเตือนที่ถูกทริกเกอร์",
+  noAlertTriggered: "ยังไม่มีการแจ้งเตือนที่ถูกทริกเกอร์",
+  strategyHistory: "ประวัติกลยุทธ์ (ล่าสุด 50 รายการ)",
+  noStrategyHistory: "ยังไม่มีประวัติกลยุทธ์",
+  footer: "เพื่อการศึกษาเท่านั้น ไม่ใช่คำแนะนำการลงทุน",
+  unableWatchlist: "ไม่สามารถโหลดวอทช์ลิสต์ได้",
+  unableAnalysis: "ไม่สามารถโหลดการวิเคราะห์ได้",
+  unableCreateAlert: "ไม่สามารถสร้างการแจ้งเตือนได้",
+  unableDeleteAlert: "ไม่สามารถลบการแจ้งเตือนได้",
+};

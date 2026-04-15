@@ -1,0 +1,22 @@
+export const idApp = {
+  title: "Dashboard Investigasi Investasi",
+  subtitle:
+    "Sinyal yang dapat dijelaskan untuk saham dan kripto berbasis skor teknikal, berita, dan risiko.",
+  language: "Bahasa",
+  loadingAnalysis: "Memuat analisis...",
+  livePrice: "Harga Live",
+  strategyUpdated: "Strategi diperbarui {ago}",
+  waitingStrategy: "menunggu pembaruan strategi live",
+  newsShockUp: "Lonjakan berita naik {delta}",
+  newsShockDown: "Lonjakan berita turun {delta}",
+  alertRules: "Aturan Alert",
+  triggeredAlerts: "Alert Terpicu",
+  noAlertTriggered: "Belum ada alert yang terpicu.",
+  strategyHistory: "Riwayat Strategi (50 terbaru)",
+  noStrategyHistory: "Belum ada riwayat strategi.",
+  footer: "Hanya untuk edukasi. Bukan nasihat keuangan.",
+  unableWatchlist: "Gagal memuat watchlist",
+  unableAnalysis: "Gagal memuat analisis",
+  unableCreateAlert: "Gagal membuat alert",
+  unableDeleteAlert: "Gagal menghapus alert",
+};

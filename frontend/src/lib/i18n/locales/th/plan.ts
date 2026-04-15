@@ -1,0 +1,33 @@
+export const thPlan = {
+  title: "แผนการลงทุนอัตโนมัติ",
+  customPlaceholder: "ธีมกำหนดเอง เช่น ความเสี่ยงวัฏจักรเซมิคอนดักเตอร์",
+  customButton: "แผนกำหนดเอง",
+  building: "กำลังสร้างแผน...",
+  comparing: "กำลังเปรียบเทียบแผน...",
+  copySummary: "คัดลอกสรุป",
+  copy: "คัดลอก",
+  allocation: "การจัดสรร",
+  execution: "การดำเนินการ",
+  riskRules: "กฎความเสี่ยง",
+  compare: "เปรียบเทียบแผน",
+  nvdaVsLrcx: "NVDA เทียบกับ LRCX",
+  currentVsNvda: "สินทรัพย์ปัจจุบัน เทียบกับ NVDA",
+  savedHistory: "ประวัติแผนที่บันทึก",
+  noSaved: "ยังไม่มีแผนที่บันทึก",
+  unableLoad: "ไม่สามารถโหลดแผนได้",
+  unableCustom: "ไม่สามารถโหลดแผนกำหนดเองได้",
+  unableCompare: "ไม่สามารถเปรียบเทียบแผนได้",
+  unableCompareNvda: "ไม่สามารถเปรียบเทียบสินทรัพย์ปัจจุบันกับ NVDA ได้",
+  unableCopy: "ไม่สามารถคัดลอกสรุปแผนได้",
+  copied: "คัดลอกสรุปแผนของ {symbol} แล้ว",
+  confidence: "ความมั่นใจ",
+  review: "ทบทวน",
+};
+
+export const thPreset = {
+  now: "แผนตอนนี้",
+  lrcx: "แผน LRCX",
+  nvda: "แผน NVDA",
+  war: "แผนภาวะสงคราม",
+  ai: "แผน AI",
+};

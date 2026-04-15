@@ -1,0 +1,22 @@
+export const enApp = {
+  title: "Investment Investigation Dashboard",
+  subtitle:
+    "Explainable signals for stocks and crypto using technical, news, and risk scoring.",
+  language: "Language",
+  loadingAnalysis: "Loading analysis...",
+  livePrice: "Live Price",
+  strategyUpdated: "Strategy updated {ago}",
+  waitingStrategy: "waiting for live strategy update",
+  newsShockUp: "News shock up {delta}",
+  newsShockDown: "News shock down {delta}",
+  alertRules: "Alert Rules",
+  triggeredAlerts: "Triggered Alerts",
+  noAlertTriggered: "No alert has triggered yet.",
+  strategyHistory: "Strategy History (latest 50)",
+  noStrategyHistory: "No strategy history yet.",
+  footer: "Educational tool only. Not financial advice.",
+  unableWatchlist: "Unable to load watchlist",
+  unableAnalysis: "Unable to load analysis",
+  unableCreateAlert: "Unable to create alert",
+  unableDeleteAlert: "Unable to delete alert",
+};

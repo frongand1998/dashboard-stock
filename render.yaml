@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: dashboard-stock-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: DATA_PROVIDER
+        value: free-tier
+      - key: BINANCE_REST_URL
+        value: https://api.binance.com
+      - key: COINGECKO_API_URL
+        value: https://api.coingecko.com/api/v3
+      - key: TWELVE_DATA_API_KEY
+        sync: false
+      - key: ALPHA_VANTAGE_API_KEY
+        sync: false
+      - key: CRYPTOPANIC_API_KEY
+        sync: false
