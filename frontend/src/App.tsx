@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createAlert,
   deleteAlert,
@@ -25,9 +25,39 @@ import { PricePanel } from "./components/PricePanel";
 import { SignalSummary } from "./components/SignalSummary";
 import { PriceChart } from "./components/PriceChart";
 import { AutoInvestmentPlan } from "./components/AutoInvestmentPlan";
+import {
+  TodaySuggestionsSection,
+  type TodaySuggestionItem,
+} from "./components/TodaySuggestionsSection";
+import logoMark from "./assets/dashboard-stock-logo.svg";
 import { type Locale, useI18n } from "./lib/i18n";
 
 const timeframes: Timeframe[] = ["15m", "1h", "4h", "1d"];
+const MIN_LOADING_SCREEN_MS = 900;
+const LOADING_SCREEN_EXIT_MS = 280;
+const SUGGESTION_TIMEFRAME: Timeframe = "1d";
+const LARGE_CAP_STOCK_RANK: Record<string, number> = {
+  AAPL: 1,
+  MSFT: 2,
+  NVDA: 3,
+  AMZN: 4,
+  GOOGL: 5,
+  GOOG: 6,
+  META: 7,
+  "BRK.B": 8,
+  AVGO: 9,
+  TSM: 10,
+  LLY: 11,
+  WMT: 12,
+  JPM: 13,
+  V: 14,
+  MA: 15,
+  XOM: 16,
+  ORCL: 17,
+  COST: 18,
+  JNJ: 19,
+  HD: 20,
+};
 
 function formatAgo(
   isoTimestamp: string | null,
@@ -54,6 +84,9 @@ function formatNullableNumber(value: unknown): string {
 
 export default function App() {
   const { locale, setLocale, t } = useI18n();
+  const [initializing, setInitializing] = useState(true);
+  const [loadingScreenVisible, setLoadingScreenVisible] = useState(true);
+  const [loadingScreenClosing, setLoadingScreenClosing] = useState(false);
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [selected, setSelected] = useState<WatchlistItem | null>(null);
   const [timeframe, setTimeframe] = useState<Timeframe>("1h");
@@ -65,6 +98,11 @@ export default function App() {
   const [liveQuote, setLiveQuote] = useState<LiveQuote | null>(null);
   const [alertRules, setAlertRules] = useState<AlertRule[]>([]);
   const [triggeredAlerts, setTriggeredAlerts] = useState<TriggeredAlert[]>([]);
+  const [todaySuggestions, setTodaySuggestions] = useState<
+    TodaySuggestionItem[]
+  >([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [suggestionsError, setSuggestionsError] = useState<string | null>(null);
   const [strategyHistory, setStrategyHistory] = useState<StrategyHistoryItem[]>(
     [],
   );
@@ -81,6 +119,7 @@ export default function App() {
     "above",
   );
   const [alertTargetPrice, setAlertTargetPrice] = useState("");
+  const loadingScreenShownAtRef = useRef<number>(Date.now());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -91,22 +130,51 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    getWatchlist()
-      .then((items) => {
-        setWatchlist(items);
-        setSelected(items[0] ?? null);
-      })
-      .catch(() => setError(t("app.unableWatchlist")));
+    Promise.allSettled([getWatchlist(), getAlerts()])
+      .then(([watchlistResult, alertsResult]) => {
+        if (watchlistResult.status === "fulfilled") {
+          setWatchlist(watchlistResult.value);
+          setSelected(watchlistResult.value[0] ?? null);
+        } else {
+          setError(t("app.unableWatchlist"));
+        }
 
-    getAlerts()
-      .then((data) => {
-        setAlertRules(data.rules);
-        setTriggeredAlerts(data.triggered);
+        if (alertsResult.status === "fulfilled") {
+          setAlertRules(alertsResult.value.rules);
+          setTriggeredAlerts(alertsResult.value.triggered);
+        }
       })
-      .catch(() => {
-        // Alert UI is optional, so this failure should not block analysis features.
-      });
+      .finally(() => setInitializing(false));
   }, []);
+
+  useEffect(() => {
+    const shouldShowLoadingScreen = initializing || (loading && !analysis);
+
+    if (shouldShowLoadingScreen) {
+      setLoadingScreenClosing(false);
+      if (!loadingScreenVisible) {
+        loadingScreenShownAtRef.current = Date.now();
+        setLoadingScreenVisible(true);
+      }
+      return;
+    }
+
+    const elapsed = Date.now() - loadingScreenShownAtRef.current;
+    const remaining = Math.max(0, MIN_LOADING_SCREEN_MS - elapsed);
+    const closeTimeoutId = window.setTimeout(() => {
+      setLoadingScreenClosing(true);
+    }, remaining);
+
+    const hideTimeoutId = window.setTimeout(() => {
+      setLoadingScreenVisible(false);
+      setLoadingScreenClosing(false);
+    }, remaining + LOADING_SCREEN_EXIT_MS);
+
+    return () => {
+      window.clearTimeout(closeTimeoutId);
+      window.clearTimeout(hideTimeoutId);
+    };
+  }, [analysis, initializing, loading, loadingScreenVisible]);
 
   useEffect(() => {
     if (!selected) return;
@@ -119,6 +187,93 @@ export default function App() {
       .catch(() => setError(t("app.unableAnalysis")))
       .finally(() => setLoading(false));
   }, [selected, timeframe, t]);
+
+  useEffect(() => {
+    const watchlistStockSymbols = watchlist
+      .filter((item) => item.assetClass === "stock")
+      .map((item) => item.symbol.trim().toUpperCase())
+      .filter(Boolean);
+
+    const universeSymbols = Array.from(
+      new Set([...Object.keys(LARGE_CAP_STOCK_RANK), ...watchlistStockSymbols]),
+    );
+
+    if (universeSymbols.length === 0) {
+      setTodaySuggestions([]);
+      setSuggestionsError(null);
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingSuggestions(true);
+    setSuggestionsError(null);
+
+    Promise.allSettled(
+      universeSymbols.map((symbol) =>
+        getAnalysis(symbol, "stock", SUGGESTION_TIMEFRAME),
+      ),
+    )
+      .then((results) => {
+        if (cancelled) return;
+
+        const actionable = results
+          .filter(
+            (result): result is PromiseFulfilledResult<AnalysisResponse> =>
+              result.status === "fulfilled",
+          )
+          .map((result) => result.value)
+          .filter(
+            (
+              item,
+            ): item is AnalysisResponse & {
+              decision: AnalysisResponse["decision"] & {
+                tradeSignal: "BUY_NOW" | "SELL_NOW";
+              };
+            } =>
+              item.decision.tradeSignal === "BUY_NOW" ||
+              item.decision.tradeSignal === "SELL_NOW",
+          )
+          .map((item) => ({
+            symbol: item.symbol,
+            assetClass: item.assetClass,
+            price: item.quote.price,
+            lotPrice: item.quote.price * 100,
+            signal: item.decision.tradeSignal,
+            finalScore: item.finalScore,
+            confidence: item.decision.confidence,
+            changePercent24h: item.quote.changePercent24h,
+            buyPowerPerLot:
+              item.decision.tradeSignal === "BUY_NOW"
+                ? (item.decision.confidence * Math.max(item.finalScore, 0)) /
+                  Math.max(item.quote.price * 100, 1)
+                : 0,
+            updatedAt: item.timestamp,
+          }));
+
+        actionable.sort((a, b) => {
+          if (a.signal !== b.signal) return a.signal === "BUY_NOW" ? -1 : 1;
+          return b.finalScore - a.finalScore;
+        });
+
+        setTodaySuggestions(actionable);
+        const failed = results.some((result) => result.status === "rejected");
+        setSuggestionsError(failed ? t("app.partialSuggestions") : null);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setTodaySuggestions([]);
+        setSuggestionsError(t("app.unableSuggestions"));
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingSuggestions(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [t, watchlist]);
 
   useEffect(() => {
     if (!selected) return;
@@ -206,11 +361,23 @@ export default function App() {
 
   const sortedWatchlist = useMemo(
     () =>
-      [...watchlist].sort(
-        (a, b) =>
-          a.assetClass.localeCompare(b.assetClass) ||
-          a.symbol.localeCompare(b.symbol),
-      ),
+      [...watchlist].sort((a, b) => {
+        if (a.assetClass !== b.assetClass) {
+          if (a.assetClass === "stock") return -1;
+          if (b.assetClass === "stock") return 1;
+          return a.assetClass.localeCompare(b.assetClass);
+        }
+
+        if (a.assetClass === "stock" && b.assetClass === "stock") {
+          const aRank =
+            LARGE_CAP_STOCK_RANK[a.symbol] ?? Number.MAX_SAFE_INTEGER;
+          const bRank =
+            LARGE_CAP_STOCK_RANK[b.symbol] ?? Number.MAX_SAFE_INTEGER;
+          if (aRank !== bRank) return aRank - bRank;
+        }
+
+        return a.symbol.localeCompare(b.symbol);
+      }),
     [watchlist],
   );
 
@@ -255,6 +422,18 @@ export default function App() {
     }
   }
 
+  if (loadingScreenVisible) {
+    return (
+      <LoadingScreen
+        isClosing={loadingScreenClosing}
+        logoSrc={logoMark}
+        title={t("app.title")}
+        subtitle={t("app.subtitle")}
+        label={t("app.loadingAnalysis")}
+      />
+    );
+  }
+
   return (
     <main className="min-h-screen bg-paper p-4 text-ink md:p-8">
       <div className="mx-auto max-w-7xl space-y-6">
@@ -282,7 +461,6 @@ export default function App() {
           </div>
           <p className="mt-2 text-sm text-cyan-100">{t("app.subtitle")}</p>
         </header>
-
         <section className="grid gap-4 rounded-2xl bg-white p-4 shadow-soft md:grid-cols-[1fr_auto_auto]">
           <div className="flex flex-wrap gap-2">
             {sortedWatchlist.map((item) => (
@@ -303,7 +481,6 @@ export default function App() {
               </button>
             ))}
           </div>
-
           <select
             value={timeframe}
             onChange={(e) => setTimeframe(e.target.value as Timeframe)}
@@ -315,7 +492,6 @@ export default function App() {
               </option>
             ))}
           </select>
-
           <div className="flex gap-2">
             <input
               value={symbolInput}
@@ -339,7 +515,47 @@ export default function App() {
             </button>
           </div>
         </section>
-
+        <TodaySuggestionsSection
+          title={t("app.todaySuggestionsTitle")}
+          subtitle={t("app.todaySuggestionsSubtitle")}
+          loadingLabel={t("app.loadingSuggestions")}
+          emptyLabel={t("app.noSuggestions")}
+          noStockLabel={t("app.noStockInWatchlist")}
+          symbolLabel={t("app.tableSymbol")}
+          actionLabel={t("app.tableAction")}
+          priceLabel={t("app.tablePrice")}
+          scoreLabel={t("app.tableScore")}
+          confidenceLabel={t("app.tableConfidence")}
+          updatedLabel={t("app.tableUpdated")}
+          lotPriceLabel={t("app.tableLotPrice")}
+          changeLabel={t("app.tableChange24h")}
+          buyPowerPerLotLabel={t("app.tableBuyPowerPerLot")}
+          viewLabel={t("app.tableView")}
+          buyLabel={t("app.suggestionBuy")}
+          sellLabel={t("app.suggestionSell")}
+          sortLabel={t("app.sortLabel")}
+          filterLabel={t("app.filterLabel")}
+          perPageLabel={t("app.perPageLabel")}
+          pageLabel={t("app.pageLabel")}
+          pagePrevLabel={t("app.pagePrev")}
+          pageNextLabel={t("app.pageNext")}
+          sortMostBuyLabel={t("app.sortMostBuy")}
+          sortMostSellLabel={t("app.sortMostSell")}
+          sortMostBuyPerLotLabel={t("app.sortMostBuyPerLot")}
+          sortTrendUpLabel={t("app.sortTrendUp")}
+          sortTrendDownLabel={t("app.sortTrendDown")}
+          filterAllLabel={t("app.filterAll")}
+          filterBuyLabel={t("app.filterBuy")}
+          filterSellLabel={t("app.filterSell")}
+          mobileViewLabel={t("app.mobileViewLabel")}
+          compactLabel={t("app.compactLabel")}
+          detailedLabel={t("app.detailedLabel")}
+          items={todaySuggestions}
+          hasStockInWatchlist={Object.keys(LARGE_CAP_STOCK_RANK).length > 0}
+          loading={loadingSuggestions}
+          error={suggestionsError}
+          onPick={(symbol, assetClass) => setSelected({ symbol, assetClass })}
+        />
         {loading && (
           <p className="rounded-xl bg-white p-4 shadow-soft">
             {t("app.loadingAnalysis")}
@@ -348,7 +564,6 @@ export default function App() {
         {error && (
           <p className="rounded-xl bg-negative/10 p-4 text-negative">{error}</p>
         )}
-
         {selected && (
           <section className="grid gap-4 rounded-2xl bg-white p-4 shadow-soft md:grid-cols-[1fr_auto_auto_auto]">
             <div>
@@ -385,7 +600,6 @@ export default function App() {
             </button>
           </section>
         )}
-
         {!loading && analysis && (
           <div className="grid gap-4 lg:grid-cols-3">
             <div className="space-y-4 lg:col-span-2">
@@ -515,10 +729,54 @@ export default function App() {
             </div>
           </div>
         )}
-
         <footer className="rounded-xl bg-white p-4 text-center text-sm text-slate-600 shadow-soft">
           {t("app.footer")}
         </footer>
+      </div>
+    </main>
+  );
+}
+
+function LoadingScreen({
+  isClosing,
+  logoSrc,
+  title,
+  subtitle,
+  label,
+}: {
+  isClosing: boolean;
+  logoSrc: string;
+  title: string;
+  subtitle: string;
+  label: string;
+}) {
+  return (
+    <main
+      className={`loading-screen min-h-screen bg-gradient-to-br from-sky-950 via-sky-900 to-cyan-700 px-6 py-12 text-white ${
+        isClosing ? "loading-screen--closing" : ""
+      }`}
+    >
+      <div className="loading-panel mx-auto flex min-h-[80vh] w-full max-w-2xl flex-col items-center justify-center rounded-3xl border border-white/20 bg-white/10 p-8 backdrop-blur-sm">
+        <div
+          className="loading-brand mb-4"
+          role="img"
+          aria-label="Dashboard Stock logo"
+        >
+          <img src={logoSrc} alt="" className="loading-brand-logo" />
+        </div>
+        <h1 className="text-center text-2xl font-bold tracking-tight md:text-3xl">
+          {title}
+        </h1>
+        <p className="mt-2 max-w-xl text-center text-sm text-cyan-100">
+          {subtitle}
+        </p>
+        <div className="loading-orbit mb-5" aria-hidden="true">
+          <span className="loading-orbit-ring" />
+          <span className="loading-orbit-dot" />
+        </div>
+        <p className="text-center text-lg font-semibold tracking-wide">
+          {label}
+        </p>
       </div>
     </main>
   );

@@ -15,11 +15,28 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:4000/api";
 
+const DEFAULT_WATCHLIST: WatchlistItem[] = [
+  { symbol: "NVDA", assetClass: "stock" },
+  { symbol: "AMD", assetClass: "stock" },
+  { symbol: "INTC", assetClass: "stock" },
+  { symbol: "LRCX", assetClass: "stock" },
+  { symbol: "TSM", assetClass: "stock" },
+  { symbol: "ASML", assetClass: "stock" },
+  { symbol: "LAC", assetClass: "stock" },
+  { symbol: "LAR", assetClass: "stock" },
+];
+
 export async function getWatchlist(): Promise<WatchlistItem[]> {
-  const res = await fetch(`${API_BASE}/watchlist`);
-  if (!res.ok) throw new Error("Unable to load watchlist");
-  const data = await res.json();
-  return data.items;
+  try {
+    const res = await fetch(`${API_BASE}/watchlist`);
+    if (!res.ok) return DEFAULT_WATCHLIST;
+
+    const data = await res.json();
+    const items = Array.isArray(data?.items) ? data.items : [];
+    return items.length > 0 ? items : DEFAULT_WATCHLIST;
+  } catch {
+    return DEFAULT_WATCHLIST;
+  }
 }
 
 export async function getAnalysis(

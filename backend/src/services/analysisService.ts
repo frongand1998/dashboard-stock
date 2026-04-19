@@ -123,10 +123,12 @@ export async function analyzeAsset(
 }
 
 export const seedWatchlist = [
-  { symbol: "AAPL", assetClass: "stock" },
-  { symbol: "MSFT", assetClass: "stock" },
   { symbol: "NVDA", assetClass: "stock" },
-  { symbol: "BTCUSDT", assetClass: "crypto" },
-  { symbol: "ETHUSDT", assetClass: "crypto" },
-  { symbol: "SOLUSDT", assetClass: "crypto" },
+  { symbol: "AMD", assetClass: "stock" },
+  { symbol: "INTC", assetClass: "stock" },
+  { symbol: "LRCX", assetClass: "stock" },
+  { symbol: "TSM", assetClass: "stock" },
+  { symbol: "ASML", assetClass: "stock" },
+  { symbol: "LAC", assetClass: "stock" },
+  { symbol: "LAR", assetClass: "stock" },
 ] as const;
