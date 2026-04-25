@@ -16,6 +16,15 @@ body {
   margin: 0;
 }
 
+.prediction-card {
+  background:
+    radial-gradient(circle at 10% 18%, rgba(56, 189, 248, 0.26), transparent 52%),
+    radial-gradient(circle at 88% 18%, rgba(249, 115, 22, 0.24), transparent 45%),
+    linear-gradient(150deg, #042033 0%, #0b3552 55%, #08293f 100%);
+  border: 1px solid rgba(125, 211, 252, 0.2);
+  animation: prediction-enter 520ms ease-out;
+}
+
 .loading-screen {
   opacity: 1;
   transform: scale(1);
@@ -111,5 +120,17 @@ body {
   50% {
     transform: translateX(-50%) scale(0.7);
     opacity: 0.5;
+  }
+}
+
+@keyframes prediction-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

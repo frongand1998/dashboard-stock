@@ -24,6 +24,7 @@ import { NewsPanel } from "./components/NewsPanel";
 import { PricePanel } from "./components/PricePanel";
 import { SignalSummary } from "./components/SignalSummary";
 import { PriceChart } from "./components/PriceChart";
+import { StockPredictionGraph } from "./components/StockPredictionGraph";
 import { AutoInvestmentPlan } from "./components/AutoInvestmentPlan";
 import {
   TodaySuggestionsSection,
@@ -629,6 +630,7 @@ export default function App() {
                 )}
               </section>
               <PriceChart analysis={analysis} />
+              <StockPredictionGraph analysis={analysis} />
               <NewsPanel analysis={analysis} />
               <section className="rounded-2xl bg-white p-5 shadow-soft">
                 <h2 className="mb-3 text-lg font-semibold text-ink">
